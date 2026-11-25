@@ -1,0 +1,35 @@
+name: Build CYDOS Firmware
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup ESP-IDF
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v5.3
+          target: esp32
+
+      - name: Run build script
+        run: |
+          chmod +x scripts/build.sh
+          ./scripts/build.sh
+
+      - name: Collect binary files
+        run: |
+          mkdir -p release_bins
+          find . -name "*.bin" -exec cp {} release_bins/ \;
+          find . -name "flasher_args.json" -exec cp {} release_bins/ \;
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cydos-firmware
+          path: release_bins/
+          
