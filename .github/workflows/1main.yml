@@ -1,0 +1,32 @@
+name: Build CYDOS Firmware
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install ESP32 core
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli config add board_manager.additional_urls https://githubusercontent.com
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+
+      - name: Compile CYDOS firmware
+        run: |
+          mkdir -p /tmp/opencode/cydos_build
+          arduino-cli compile --fqbn esp32:esp32:esp32:PartitionScheme=huge_app --build-path /tmp/opencode/cydos_build firmware/cydos
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cydos-firmware
+          path: /tmp/opencode/cydos_build/*.bin
