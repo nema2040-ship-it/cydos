@@ -10,26 +10,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup ESP-IDF
-        uses: espressif/esp-idf-ci-action@v1
-        with:
-          esp_idf_version: v5.3
-          target: esp32
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
 
-      - name: Run build script
+      - name: Install ESP32 core
         run: |
-          chmod +x scripts/build.sh
-          ./scripts/build.sh
+          arduino-cli core update-index --additional-urls https://github.io
+          arduino-cli core install esp32:esp32 --additional-urls https://github.io
 
-      - name: Collect binary files
+      - name: Compile CYDOS firmware
         run: |
-          mkdir -p release_bins
-          find . -name "*.bin" -exec cp {} release_bins/ \;
-          find . -name "flasher_args.json" -exec cp {} release_bins/ \;
+          mkdir -p /tmp/opencode/cydos_build
+          arduino-cli compile --fqbn esp32:esp32:esp32:PartitionScheme=huge_app --build-path /tmp/opencode/cydos_build firmware/cydos
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
           name: cydos-firmware
-          path: release_bins/
-          
+          path: /tmp/opencode/cydos_build/*.bin
+ 
