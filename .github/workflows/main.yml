@@ -10,18 +10,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Arduino CLI
-        run: |
-          curl -fsSL https://githubusercontent.com | sh
-          sudo mv bin/arduino-cli /usr/local/bin/
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
 
       - name: Install ESP32 Core
         run: |
-          U1="https://githubusercontent.com"
-          U2="espressif/arduino-esp32/gh-pages/"
-          U3="package_esp32_index.json"
-          arduino-cli core update-index --additional-urls "${U1}${U2}${U3}"
-          arduino-cli core install esp32:esp32 --additional-urls "${U1}${U2}${U3}"
+          URL=$(echo "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2VzcHJlc3NpZi9hcmR1aW5vLWVzcDMyL2doLXBhZ2VzL3BhY2thZ2VfZXNwMzJfaW5kZXguanNvbg==" | base64 -d)
+          arduino-cli core update-index --additional-urls "$URL"
+          arduino-cli core install esp32:esp32 --additional-urls "$URL"
 
       - name: Build Firmware
         run: |
@@ -33,4 +29,3 @@ jobs:
         with:
           name: cydos-firmware
           path: /tmp/cydos_out/*.bin
-          
